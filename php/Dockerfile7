@@ -1,0 +1,52 @@
+FROM centos:7
+
+MAINTAINER kim
+
+RUN yum install -y gcc gcc-c++ gd-devel libxml2-devel libcurl-devel libjpeg-devel libpng-devel openssl-devel make perl autoconf wget unzip
+
+ADD libzip-1.2.0.tar.gz /tmp
+RUN cd /tmp/libzip-1.2.0 && \
+    ./configure && \
+    make && \
+    make install
+
+ADD php-7.1.32.tar.gz /tmp
+RUN cd /tmp/php-7.1.32 && \
+    ./configure --prefix=/usr/local/php \
+    --with-config-file-path=/usr/local/php/etc \
+    --with-mysql --with-mysqli --with-pdo-mysql\
+    --with-openssl --with-zlib --with-curl --with-gd \
+    --with-jpeg-dir --with-png-dir --with-iconv \
+    --enable-fpm --enable-zip --enable-mbstring && \
+    cp /usr/local/lib/libzip/include/zipconf.h /usr/local/include/ && \
+    make -j 4 && make install && \
+    cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \
+    cp /tmp/php-7.1.32/php.ini-production /usr/local/php/etc/php.ini && \
+    cp /usr/local/php/etc/php-fpm.d/www.conf.default /usr/local/php/etc/php-fpm.d/www.conf  && \
+    sed -i "s/127.0.0.1/0.0.0.0/g" /usr/local/php/etc/php-fpm.d/www.conf && \
+    cp ./sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm && \
+    chmod +x /etc/init.d/php-fpm
+
+COPY CMake.zip /tmp
+RUN cd /tmp && unzip CMake.zip && cd CMake && ./bootstrap && gmake && gmake install
+
+###ADD QConf-1.2.1.tar.gz /tmp
+###RUN cd /tmp/QConf-1.2.1 && mkdir build && cd build && cmake .. && make && make install && \
+###    cd ../driver/php && /usr/local/php/bin/phpize && \
+###    ./configure --with-php-config=/usr/local/php/bin/php-config \
+###    --with-libqconf-dir=/usr/local/qconf/include/ \
+###    --enable-static LDFLAGS=/usr/local/lib/libqconf.a && \
+###    make && make install && \
+###    echo "extension=qconf.so" >> /usr/local/php/etc/php.ini
+
+### redis
+RUN cd /tmp && wget https://pecl.php.net/get/redis-5.0.0.tgz && \
+    tar -zxvf redis-5.0.0.tgz && cd redis-5.0.0 && /usr/local/php/bin/phpize && \
+    ./configure --with-php-config=/usr/local/php/bin/php-config && \
+    make && make install && \
+    echo "extension=redis.so" >> /usr/local/php/etc/php.ini
+
+
+
+EXPOSE 9000
+CMD /etc/init.d/php-fpm start  && tail -F /var/log/messages

@@ -1,0 +1,88 @@
+version: '3'
+services:
+  nginx:
+    hostname: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    links:
+      - php:php-cgi
+    volumes:
+      - /Users/zego/wwwroot:/usr/local/nginx/html
+      - ./nginx/conf.d:/usr/local/nginx/conf/conf.d
+      - ./nginx/nginx.conf:/usr/local/nginx/conf/nginx.conf
+    networks:
+      - cp7-default
+ 
+  php:
+    hostname: php
+    build: ./php
+    links:
+      - mysql:mysql-db
+    volumes:
+      - /Users/zego/wwwroot:/usr/local/nginx/html
+    networks:
+      - cp7-default
+ 
+  mysql:
+    hostname: mysql
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: kkkkimroot
+      MYSQL_DATABASE: test
+      MYSQL_USER: kim
+      MYSQL_PASSWORD: 123456
+    networks:
+      - cp7-default
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+       - ./redis/redis.conf:/etc/redis/redis.conf:rw
+       - ./redis/data/:/data:rw
+    command:
+      # 执行的命令
+      redis-server /etc/redis/redis.conf --appendonly yes
+    networks:
+      - cp7-default
+
+
+  zookeeper1:
+    image: zookeeper:3.4
+    container_name: zookeeper1
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888
+    networks:
+      - cp7-default
+
+  zookeeper2:
+    image: zookeeper:3.4
+    container_name: zookeeper2
+    restart: always
+    ports:
+        - "2182:2181"
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888
+    networks:
+        - cp7-default
+
+
+networks:
+  cp7-default:

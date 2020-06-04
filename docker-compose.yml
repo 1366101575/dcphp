@@ -23,6 +23,7 @@ services:
       - mysql:mysql-db
     volumes:
       - /Users/zego/wwwroot:/usr/local/nginx/html
+      - ./php/php.ini:/usr/local/php/etc/php.ini
     networks:
       - cp7-default
  

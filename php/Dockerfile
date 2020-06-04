@@ -6,16 +6,16 @@ MAINTAINER kim
 RUN yum install -y gcc gcc-c++ gd-devel libxml2-devel libcurl-devel libjpeg-devel libpng-devel openssl-devel make perl autoconf wget unzip
 
 # 下载压缩包解压到指定目录
-ADD php-5.6.31.tar.gz /tmp/
+ADD php-5.6.40.tar.gz /tmp/
 
 # 编译安装php，执行相关命令，PHP7安装qconf_manager扩展时有坑（暂时没踩过去）
-RUN cd /tmp/php-5.6.31 && \
+RUN cd /tmp/php-5.6.40 && \
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-mysql --with-mysqli --with-pdo-mysql \
     --with-openssl --with-zlib --with-curl --with-gd \
     --with-jpeg-dir --with-png-dir --with-iconv \
-    --enable-fpm --enable-zip --enable-mbstring && \
+    --enable-fpm --enable-zip --enable-mbstring --enable-bcmath && \
     make -j 4 && make install && \
     cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \
     sed -i "s/127.0.0.1/0.0.0.0/" /usr/local/php/etc/php-fpm.conf && \

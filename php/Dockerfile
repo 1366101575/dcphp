@@ -4,6 +4,7 @@ MAINTAINER kim
 
 # 安装编译库
 RUN yum install -y gcc gcc-c++ gd-devel libxml2-devel libcurl-devel libjpeg-devel libpng-devel openssl-devel make perl autoconf wget unzip
+RUN yum install epel-release && yum update && yum install libmcrypt libmcrypt-devel mcrypt mhash
 
 # 下载压缩包解压到指定目录
 ADD php-5.6.40.tar.gz /tmp/
@@ -14,7 +15,7 @@ RUN cd /tmp/php-5.6.40 && \
     --with-config-file-path=/usr/local/php/etc \
     --with-mysql --with-mysqli --with-pdo-mysql \
     --with-openssl --with-zlib --with-curl --with-gd \
-    --with-jpeg-dir --with-png-dir --with-iconv \
+    --with-jpeg-dir --with-png-dir --with-iconv --with-mcrypt \
     --enable-fpm --enable-zip --enable-mbstring --enable-bcmath && \
     make -j 4 && make install && \
     cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \

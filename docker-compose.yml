@@ -84,6 +84,14 @@ services:
     networks:
         - cp7-default
 
+  zookeepertest:
+    image: zookeeper:3.4
+    container_name: zookeepertest
+    restart: always
+    ports:
+        - "2183:2181"
+    networks:
+        - cp7-default
 
 networks:
   cp7-default:

@@ -1,0 +1,86 @@
+version: '3'
+services:
+  go:
+    hostname: go
+    build:
+      context: ./go
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    links:
+      - mysql:mysql-db
+    volumes:
+      - /Users/zego/go:/go
+    stdin_open: true
+    tty: true
+    networks:
+      - go-default
+ 
+  mysql:
+    hostname: mysql
+    image: mysql:5.7
+    ports:
+      - "33061:3306"
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: kkkkimroot
+      MYSQL_DATABASE: test
+      MYSQL_USER: kim
+      MYSQL_PASSWORD: 123456
+    networks:
+      - go-default
+
+  redis:
+    image: redis:latest
+    container_name: goredis
+    restart: always
+    ports:
+      - 63791:6379
+    volumes:
+       - ./redis/redis.conf:/etc/redis/redis.conf:rw
+       - ./redis/data/:/data:rw
+    command:
+      # 执行的命令
+      redis-server /etc/redis/redis.conf --appendonly yes
+    networks:
+      - go-default
+
+
+  gozookeeper1:
+    image: zookeeper:3.4
+    container_name: gozookeeper1
+    restart: always
+    ports:
+      - "21811:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=gozookeeper1:2888:3888 server.2=gozookeeper2:2888:3888
+    networks:
+      - go-default
+
+  gozookeeper2:
+    image: zookeeper:3.4
+    container_name: gozookeeper2
+    restart: always
+    ports:
+        - "21812:2181"
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=gozookeeper1:2888:3888 server.2=gozookeeper2:2888:3888
+    networks:
+        - go-default
+
+  gozookeepertest:
+    image: zookeeper:3.4
+    container_name: gozookeepertest
+    restart: always
+    ports:
+        - "21813:2181"
+    networks:
+        - go-default
+
+networks:
+  go-default:
